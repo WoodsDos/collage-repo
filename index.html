@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Para ti 💖 | Nuestro collage</title>
+  <style>
+    :root{
+      --bg1:#e9fbf6;
+      --bg2:#d6f6ef; 
+      --ink:#21323a;  
+      --accent:#2ec4b6;
+      --card:#ffffffcc;
+      --note:#fff6b3;
+      --shadow:0 10px 25px rgba(0,0,0,.12);
+      --radius:18px;
+    }
+    html,body{
+      font-family: system-ui, -apple-system,Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(1100px 700px at 5% 0%, rgba(46,196,182,.18) 0%, transparent 60%),
+        radial-gradient(1100px 700px at 95% 100%, rgba(42,157,143,.16) 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+      background-attachment: fixed, fixed, fixed;
+      background-repeat: no-repeat, no-repeat, no-repeat;
+      color:var(--ink);
+      display:flex; flex-direction:column;
+      min-height:100dvh;
+    }
+    body{
+      font-family: system-ui, -apple-system,Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% -10%, #ffe0ef 0%, transparent 60%),
+                  radial-gradient(1200px 800px at 110% 110%, #ffd3e6 0%, transparent 60%),
+                  var(--bg);
+      color:var(--ink);
+      display:flex; flex-direction:column;
+      min-height:100dvh;
+    }
+    header{text-align:center; padding:34px 16px 14px;}
+    header h1{ margin:0 0 6px; font-size:clamp(22px,3vw,34px)}
+    header p{ margin:0; opacity:.75}
+
+    .controls{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:16px 0 6px }
+    .btn{border:none; padding:10px 14px; border-radius:999px; cursor:pointer; font-weight:600; background:var(--accent); color:white; box-shadow:var(--shadow); transition:transform .08s ease;}
+    .btn:active{ transform:scale(.98)}
+    .btn.secondary{ background:white; color:var(--accent); outline:2px solid var(--accent)}
+
+    .grid{width:min(1200px, 92%); margin:10px auto 60px;}
+
+.grid.masonry{ column-width: 280px; column-gap:22px; }
+
+.grid:not(.masonry){ display:grid; gap:22px; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); }
+    .card{position:relative; overflow:hidden; border-radius:var(--radius); background:var(--card); box-shadow:var(--shadow); transition: transform .2s ease, box-shadow .2s ease; aspect-ratio: 1 / 1; display:inline-block; width:100%; margin:0 0 22px; break-inside: avoid; }
+    .card.tall{ aspect-ratio: 3 / 4 }
+    .card.wide{ aspect-ratio: 16 / 9 }
+    .card:hover{ transform:translateY(-3px); box-shadow:0 15px 30px rgba(0,0,0,.18)}
+    .card img{ width:100%; height:100%; object-fit:cover; display:block }
+
+    .ribbon{ position:absolute; left:10px; top:10px; z-index:1; background:rgba(0,0,0,.55); color:#fff; padding:6px 10px; border-radius:999px; font-size:.9rem; backdrop-filter: blur(2px); }
+    .note-tag{ position:absolute; right:10px; bottom:10px; z-index:1; background:var(--note); color:#232; padding:6px 10px; border-radius:10px; font-size:.9rem; box-shadow:var(--shadow); transform: rotate(-2deg); }
+
+    .lightbox{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; backdrop-filter: blur(3px); z-index:9999; }
+    .lightbox.open{ display:flex; }
+    .scrim{ position:absolute; inset:0; background:rgba(0,0,0,.55)}
+    .modal{position:relative; z-index:2; width:min(950px, 92vw); max-height:86vh; background:white; border-radius:22px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.35); display:grid; grid-template-rows: auto 1fr auto;}
+    .modal header{ padding:14px 18px; text-align:left; border-bottom:1px solid #eee }
+    .modal .img-wrap{ display:flex; align-items:center; justify-content:center; background:#000 }
+    .modal img{ width:100%; max-height:70vh; object-fit:contain; background:#000 }
+    .modal .note{padding:14px 18px; background: var(--note); border-top:1px dashed #e1c857; font-size:1rem; line-height:1.5; position:relative;}
+    .close{ position:absolute; right:12px; top:12px; border:none; background:#000; color:#fff; width:36px; height:36px; border-radius:999px; cursor:pointer }
+
+    .hearts{ position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+    .heart{ position:absolute; font-size:18px; animation: floatUp linear forwards; opacity:.7 }
+    @keyframes floatUp{ to{ transform:translateY(-120vh); opacity:0 } }
+
+    footer{ text-align:center; opacity:.7; padding:20px; font-size:.9rem }
+    body.modal-open{ overflow:hidden }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Para <span id="partnerName">Mi Amor</span> 💕</h1>
+    <p>Pequeño collage hecho con todo mi cariño. Haz clic en una foto para ver su mensajito.</p>
+    <div class="controls">
+      <button class="btn" id="shuffleBtn" title="Mezclar">Mezclar</button>
+      <button class="btn secondary" id="toggleHearts">Corazones</button>
+    </div>
+  </header>
+
+  <main class="grid masonry" id="grid"></main>
+
+  <div class="lightbox" id="lightbox" aria-modal="true" role="dialog">
+    <div class="scrim" id="closeArea"></div>
+    <div class="modal">
+      <header><strong id="lbTitle">Foto</strong></header>
+      <div class="img-wrap"><img id="lbImg" alt="" /></div>
+      <div class="note" id="lbNote"></div>
+      <button class="close" id="lbClose" aria-label="Cerrar">✕</button>
+    </div>
+  </div>
+
+  <div class="hearts" id="hearts"></div>
+
+  <footer>
+    Hecho con 💖 por <span id="author">Javier</span>
+  </footer>
+
+  <script>
+    const settings = {
+      partnerName: "mi bonitaa",
+      author: "Javier",
+      photos: [
+        { src: "assets/foto1.jpg", title: "Nosotros 😊", note: "Ese día supe que contigo todo se siente hogar." },
+        { src: "assets/foto2.jpg", title: "La culpable de mi sonrisa", note: "Y sí, esta es la cara que me roba la felicidad todos los días." },
+        { src: "assets/foto3.jpg", title: "Un día en el acuario", note: "Fuimos al acuario… pero el verdadero espectáculo eras tú." },
+        { src: "assets/foto4.jpg", title: "Mi foto favorita", note: "Eres mi casualidad favorita y mi plan perfecto." },
+        { src: "assets/foto5.jpg", title: "Refugio", note: "En tus brazos, el mundo deja de existir." },
+        { src: "assets/foto6.jpg", title: "Mi sueño favorito", note: "Dormir a tu lado es vivir en un sueño del que no quiero despertar." },
+        { src: "assets/foto7.jpg", title: "Mi comelona favorita", note: "No importa la comida, tú siempre eres mi plato favorito." },
+        { src: "assets/foto8.jpg", title: "Donde todo empieza y termina", note: "En tu abrazo cabe mi mundo entero." },
+        { src: "assets/foto9.jpg", title: "La sonrisa que me enamora", note: "Con una sonrisa tuya, mi día ya es perfecto." },
+        { src: "assets/foto10.jpg", title: "Mi Esperancita", note: "Yo te cocino y tu lavas, jsjsjs" },
+        { src: "assets/foto11.jpg", title: "Ternura en todas partes", note: "Tu ternura conquista a cualquiera, incluso a un desconocido gatito." },
+        { src: "assets/foto12.jpg", title: "Dulzura sin límites", note: "Entre tus manos siempre hay cariño, sin importar a quién." }
+      ]
+    };
+
+    const grid = document.getElementById('grid');
+    const partnerNameEl = document.getElementById('partnerName');
+    const authorEl = document.getElementById('author');
+    partnerNameEl.textContent = settings.partnerName || 'Mi Amor';
+    authorEl.textContent = settings.author || 'Yo';
+
+    function cardTemplate(p){
+      const card = document.createElement('article');
+      card.className = 'card' + (p.shape? ' ' + p.shape : '');
+      card.innerHTML = `
+        <span class="ribbon">${p.title ?? ''}</span>
+        <span class="note-tag">💌 Mensaje</span>
+        <img loading="lazy" src="${p.src}" alt="${p.title ?? 'Foto'}"/>
+      `;
+      card.addEventListener('click',()=> openLightbox(p));
+      return card;
+    }
+
+    function render(){
+      grid.innerHTML = '';
+      const pattern = ['tall','wide','','wide','tall','','wide','','tall','','wide',''];
+      settings.photos.forEach((p,idx)=>{
+        const shaped = { ...p };
+        if(!shaped.shape) shaped.shape = pattern[idx % pattern.length];
+        grid.appendChild(cardTemplate(shaped));
+      });
+    }
+
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lbImg');
+    const lbTitle = document.getElementById('lbTitle');
+    const lbNote = document.getElementById('lbNote');
+
+    function openLightbox(p){
+      lbTitle.textContent = p.title || 'Foto';
+      lbImg.src = p.src;
+      lbNote.textContent = p.note || '';
+      document.body.classList.add('modal-open');
+      lb.classList.add('open');
+    }
+    function closeLightbox(){ lb.classList.remove('open'); lbImg.src=''; document.body.classList.remove('modal-open'); }
+    document.getElementById('lbClose').addEventListener('click', closeLightbox);
+    document.getElementById('closeArea').addEventListener('click', closeLightbox);
+    window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeLightbox(); });
+
+    document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+      settings.photos = settings.photos
+        .map(v=>({ v, r:Math.random()}))
+        .sort((a,b)=>a.r-b.r)
+        .map(({v})=>v);
+      render();
+    });
+
+    const hearts = document.getElementById('hearts');
+    let heartsOn = false, heartTimer;
+    function spawnHeart(){
+      const el = document.createElement('div');
+      el.className = 'heart';
+      el.textContent = '❤';
+      el.style.left = Math.random()*100 + 'vw';
+      el.style.bottom = '-10vh';
+      el.style.animationDuration = (6 + Math.random()*6) + 's';
+      hearts.appendChild(el);
+      setTimeout(()=> el.remove(), 12000);
+    }
+    function toggleHearts(){
+      heartsOn = !heartsOn;
+      if(heartsOn){ heartTimer = setInterval(spawnHeart, 700); }
+      else { clearInterval(heartTimer); hearts.innerHTML=''; }
+    }
+    document.getElementById('toggleHearts').addEventListener('click', toggleHearts);
+
+    render();
+  </script>
+</body>
+</html>
